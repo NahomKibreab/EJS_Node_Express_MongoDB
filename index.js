@@ -58,6 +58,12 @@ app.put('/product/:id', async (req, res) => {
   res.redirect(`/product/${product._id}`);
 });
 
+app.delete('/product/:id', async (req, res) => {
+  const { id } = req.params;
+  const product = await Product.findByIdAndDelete(id);
+  res.redirect(`/`);
+});
+
 app.get('/', async (req, res) => {
   const products = await Product.find({});
   res.render('home', { products });
