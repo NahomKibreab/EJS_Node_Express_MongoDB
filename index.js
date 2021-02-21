@@ -27,8 +27,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // override with POST having ?_method=DELETE
 app.use(methodOverride('_method'));
 
-app.get('/product/new', (req, res) => {
-  res.render('new');
+app.get('/product', async (req, res) => {
+  const { category } = req.query;
+  if (category) {
+    const products = await Product.find({ category });
+    res.render('home', { products, category });
+  } else {
+    const products = await Product.find({});
+    res.render('home', { products, category });
+  }
 });
 
 app.post('/product/new', async (req, res) => {
@@ -64,9 +71,10 @@ app.delete('/product/:id', async (req, res) => {
   res.redirect(`/`);
 });
 
-app.get('/', async (req, res) => {
-  const products = await Product.find({});
-  res.render('home', { products });
+app.get('/category/:id', async (req, res) => {
+  const { id } = req.params;
+  const product = await Product.findByIdAndDelete(id);
+  res.redirect(`/`);
 });
 
 app.listen(port, () => {

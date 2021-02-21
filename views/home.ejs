@@ -7,10 +7,10 @@
     <title>Home</title>
 </head>
 <body>
-    <h1>Product list</h1>
+    <h1><%= !category ? 'All' : category%> Product list</h1>
     <% for(product of products){ %>
         <li><a href="product/<%= product.id %> "><%= product.name %></a></li>
     <% } %>  
-    <a href="/product/new">Add New</a>
+    <a href="/product" <%= !category ? 'hidden':'' %> >Show All</a> <a href="/product/new">Add New</a>
 </body>
 </html>
