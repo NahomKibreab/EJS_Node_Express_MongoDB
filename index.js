@@ -4,12 +4,14 @@ const path = require('path');
 const port = 3000;
 const Product = require('./models/product');
 const mongoose = require('mongoose');
+const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
 
 mongoose.connect('mongodb://localhost/shopApp', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
+  useFindAndModify: false,
 });
 
 const db = mongoose.connection;
@@ -22,6 +24,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({ extended: true }));
+// override with POST having ?_method=DELETE
+app.use(methodOverride('_method'));
 
 app.get('/product/new', (req, res) => {
   res.render('new');
@@ -44,6 +48,14 @@ app.get('/product/:id/edit', async (req, res) => {
   const product = await Product.findById(id);
   const categories = ['vegetable', 'fruit', 'dairy'];
   res.render('Edit', { product, categories });
+});
+
+app.put('/product/:id', async (req, res) => {
+  const { id } = req.params;
+  const product = await Product.findByIdAndUpdate(id, req.body, {
+    runValidators: true,
+  });
+  res.redirect(`/product/${product._id}`);
 });
 
 app.get('/', async (req, res) => {
