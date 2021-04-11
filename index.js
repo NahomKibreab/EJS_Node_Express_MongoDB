@@ -28,8 +28,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // override with POST having ?_method=DELETE
 app.use(methodOverride('_method'));
 
-app.get('/product', async (req, res, next) => {
-  try {
+function wrapAsync(fn) {
+  return function (req, res, next) {
+    fn(req, res, next).catch((error) => next(error));
+  };
+}
+
+app.get(
+  '/product',
+  wrapAsync(async (req, res, next) => {
     const { category } = req.query;
     if (category) {
       const products = await Product.find({ category });
@@ -38,84 +45,74 @@ app.get('/product', async (req, res, next) => {
       const products = await Product.find({});
       res.render('home', { products, category });
     }
-  } catch (error) {
-    next(error);
-  }
-});
-app.get('/product/new', (req, res, next) => {
-  try {
+  })
+);
+app.get(
+  '/product/new',
+  wrapAsync((req, res, next) => {
     res.render('New');
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
-app.post('/product/new', async (req, res, next) => {
-  try {
+app.post(
+  '/product/new',
+  wrapAsync(async (req, res, next) => {
     const newProduct = Product(req.body);
     await newProduct.save();
     res.redirect('/product');
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
-app.get('/product/:id', async (req, res, next) => {
-  try {
+app.get(
+  '/product/:id',
+  wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const product = await Product.findById(id);
-    if (product) {
-      res.render('show', { product });
-    } else {
+    if (!product) {
       throw new AppError(404, 'Page not found');
     }
-  } catch (error) {
-    next(error);
-  }
-});
+    res.render('show', { product });
+  })
+);
 
-app.get('/product/:id/edit', async (req, res, next) => {
-  try {
+app.get(
+  '/product/:id/edit',
+  wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const product = await Product.findById(id);
     const categories = ['vegetable', 'fruit', 'dairy'];
     res.render('Edit', { product, categories });
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
-app.put('/product/:id', async (req, res, next) => {
-  try {
+app.put(
+  '/product/:id',
+  wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const product = await Product.findByIdAndUpdate(id, req.body, {
       runValidators: true,
     });
     res.redirect(`/product/${product._id}`);
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
-app.delete('/product/:id', async (req, res, next) => {
-  try {
+app.delete(
+  '/product/:id',
+  wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const product = await Product.findByIdAndDelete(id);
     res.redirect(`product`);
-  } catch (error) {
-    next(next);
-  }
-});
+  })
+);
 
-app.get('/category/:id', async (req, res, next) => {
-  try {
+app.get(
+  '/category/:id',
+  wrapAsync(async (req, res, next) => {
     const { id } = req.params;
     const product = await Product.findByIdAndDelete(id);
     res.redirect(`/`);
-  } catch (error) {
-    next(error);
-  }
-});
+  })
+);
 
 app.use((err, req, res, next) => {
   const { status = 500, message = 'Something went wrong' } = err;
