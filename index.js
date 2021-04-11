@@ -6,8 +6,9 @@ const Product = require('./models/product');
 const mongoose = require('mongoose');
 const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
+const AppError = require('./AppError');
 
-mongoose.connect('mongodb://localhost/shopApp', {
+mongoose.connect('mongodb://localhost/farmShop2', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useCreateIndex: true,
@@ -27,13 +28,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // override with POST having ?_method=DELETE
 app.use(methodOverride('_method'));
 
-app.get('/product', async (req, res) => {
+app.get('/product', async (req, res, next) => {
   const { category } = req.query;
   if (category) {
     const products = await Product.find({ category });
     res.render('home', { products, category });
   } else {
     const products = await Product.find({});
+    return next(new AppError(404, 'Product Not Found'));
     res.render('home', { products, category });
   }
 });
@@ -75,6 +77,11 @@ app.get('/category/:id', async (req, res) => {
   const { id } = req.params;
   const product = await Product.findByIdAndDelete(id);
   res.redirect(`/`);
+});
+
+app.use((err, req, res, next) => {
+  const { status = 500, message = 'Something went wrong' } = err;
+  res.status(status).send(message);
 });
 
 app.listen(port, () => {

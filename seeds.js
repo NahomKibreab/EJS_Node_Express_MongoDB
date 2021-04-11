@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Product = require('./models/product');
 mongoose
-  .connect('mongodb://localhost/shopApp', {
+  .connect('mongodb://localhost/farmShop2', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
