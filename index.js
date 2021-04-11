@@ -114,6 +114,20 @@ app.get(
   })
 );
 
+const validationError = (e) => {
+  console.dir(e);
+  return new AppError(400, `This is Mongoose Validation Failed...${e.message}`);
+};
+
+app.use((err, req, res, next) => {
+  console.log(err.name);
+  if (err.name === 'ValidationError') {
+    err = validationError(err);
+  }
+
+  next(err);
+});
+
 app.use((err, req, res, next) => {
   const { status = 500, message = 'Something went wrong' } = err;
   res.status(status).send(message);
